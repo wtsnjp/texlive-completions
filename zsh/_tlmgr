@@ -1,0 +1,235 @@
+#compdef tlmgr
+#autoload
+
+#
+# This is file '_tlmgr' a zsh completion script for tlmgr.
+#
+# Copyright 2021 Takuto ASAKURA (wtsnjp)
+#   GitHub:   https://github.com/wtsnjp
+#   Twitter:  @wtsnjp
+#
+# This script is distributed under the MIT License.
+#
+
+# functions starting with __tlmgr are helper functions
+# functions starting with _tlmgr are completions for tlmgr commands
+
+function __tlmgr_packages() {
+  local tlpdb="$(kpsewhich -var-value TEXMFROOT)/tlpkg/texlive.tlpdb"
+  local -a packages
+  packages=("${(@f)$(awk '/^name[^.]*$/ {print $2}' $tlpdb)}")
+  _describe -t packages 'TeX Live packages' packages
+}
+
+function __tlmgr_actions() {
+  local -a actions
+  actions=(
+    'help:Display help information and exit'
+    'version:Display version and exit'
+    'backup:Save or prune backups'
+    'candidates:Show the available candidate repositories'
+    'check:Check consistency of installation'
+    'conf:Show or modify configurations'
+    'dump-tlpdb:Dump complete local or remote TLPDB'
+    'generate:Generate hyphnation files'
+    'gui:Start the graphical user interface'
+    'info:Display information of packages'
+    'init-usertre:Set up TEXMFHOME'
+    'install:Install packages'
+    'key:List, add, or remove GPG keys'
+    'list:Synoym for "info"'
+    'option:Show or set global TeX Live settings'
+    'paper:Show or set default paper size'
+    'path:Add or remove symlinks in paths'
+    'pinning:Manage pinning files'
+    'platform:Manage platform'
+    'postaction:Install or remove postactions'
+    'print-platform:Display platform'
+    'print-platform-info:Display platform information'
+    'remove:Remove packages'
+    'repository:Manage repositories'
+    'restore:Restore a package from a backup'
+    'search:Search packages'
+    'shell:Start an interactive mode'
+    'show:Synonym for "info"'
+    'uninstall:Synonym for "remove"'
+    'update:Update packages'
+  )
+  _describe -t actions 'tlmgr action' actions
+}
+
+# tlmgr backup
+function _tlmgr_backup() {
+  _arguments \
+    '--backupdir=:directory:_files -/' \
+    '--all' \
+    '--clean' \
+    '--dry-run' \
+    - packages \
+    '*::packages:__tlmgr_packages'
+}
+
+# tlmgr candidates
+function _tlmgr_candidates() {
+  _arguments \
+    - packages \
+    '*::packages:__tlmgr_packages'
+}
+
+# tlmgr check
+function _tlmgr_check() {
+  _arguments \
+    '--use-svn' \
+    '*: :->category'
+  case $state in
+    category)
+      _values 'category' \
+        'all' 'depends' 'executes' 'files' 'runfiles' 'texmfdbs'
+    ;;
+  esac
+}
+
+# tlmgr conf
+function _tlmgr_conf() {
+  local function __tlmgr_conf_keyval() {
+    local -a types
+    types=(
+      'texmf'
+      'tlmgr'
+      'udpmap'
+      'auxtrees'
+    )
+    _describe -t cnftype 'conf type' types
+  }
+
+  local function __tlmgr_conf_auxtrees() {
+    _arguments \
+      '--conffile=:file:_files' \
+      '*::->action' && return 0
+
+    case "$state" in
+      action)
+        _values 'action' 'show' 'add' 'remove'
+      ;;
+    esac
+  }
+
+  _arguments \
+    '1:cnftype:->cnftype' \
+    '*::options:->options' && return 0
+
+  case "$state" in
+    cnftype)
+      __tlmgr_conf_keyval && return 0
+    ;;
+    options)
+      local cnftype="$line[1]"
+      if [[ "$cnftype" == "auxtrees" ]]; then
+        __tlmgr_conf_auxtrees
+      else
+        _arguments \
+          '--delete' \
+          '--conffile=:file:_files'
+      fi
+    ;;
+  esac
+}
+
+# tlmgr dump-tlpdb
+function _tlmgr_dump_tlpdb() {
+  _arguments \
+    '--local' \
+    '--remote' \
+    '--json'
+}
+
+# tlmgr generate
+function _tlmgr_generate() {
+  _arguments \
+    '--dest=:file:_files' \
+    '--localcfg=:file:_files' \
+    '--rebuild-sys' \
+    '*: :->langfile' && return 0
+
+  case $state in
+    langfile)
+      _values 'file' \
+        'language' 'language.dat' 'language.def' 'language.dat.lua'
+    ;;
+  esac
+}
+
+# tlmgr gui
+# nothing to do
+
+# tlmgr info
+function _tlmgr_info() {
+  _arguments \
+    '--list' \
+    '--only-installed' \
+    '--only-remote' \
+    '--data' \
+    '--json' \
+    - packages \
+    '*::packages:__tlmgr_packages'
+}
+
+# tlmgr init-usertree
+# nothing to do
+
+# tlmgr install
+function _tlmgr_install() {
+  _arguments \
+    '--dry-run' \
+    '--file' \
+    '--force' \
+    '--no-depends' \
+    '--no-depends-at-all' \
+    '--reinstall' \
+    '--with-doc' \
+    '--with-src' \
+    - packages \
+    '*::packages:__tlmgr_packages'
+}
+
+# tlmgr key
+# TODO
+
+# tlmgr list
+function _tlmgr_list() {
+  _tlmgr_info
+}
+
+# tlmgr option
+# TODO
+
+# the main completion function
+function _tlmgr() {
+  local curcontext="$curcontext" state state_descr line expl
+  local tmp ret=1
+
+  # Synonym -? is not supported because it does not work with Zsh
+  _arguments -C : \
+    '(- *)'{-h,--help}'[Show help]' \
+    '(- *)--version[Show version]' \
+    '1:command:->command' \
+    '*::options:->options' && return 0
+
+  case "$state" in
+    command)
+      __tlmgr_actions && return 0
+    ;;
+    options)
+      local command="${line[1]}"
+      local completion_func="_tlmgr_${command//-/_}"
+      _call_function ret "${completion_func}" && return ret
+
+      _message "A completion function is not defined for command: ${command}"
+      return 1
+    ;;
+  esac
+}
+
+_tlmgr "$@"
+
+# vim: ft=zsh:

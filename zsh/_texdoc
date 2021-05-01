@@ -1,0 +1,47 @@
+#compdef texdoc
+#
+# This is file '_texdoc' a zsh completion script for texdoc.
+#
+# Copyright 2018 Takuto ASAKURA (wtsnjp)
+#   GitHub:   https://github.com/wtsnjp
+#   Twitter:  @wtsnjp
+#
+# This script is distributed under the MIT License.
+#
+
+function _texdoc() {
+  _arguments -C -A "-*" \
+    '(-)'{-w,--view}'[use view mode]' \
+    '(-)'{-m,--mixed}'[use mixed mode]' \
+    '(-)'{-l,--list}'[use list mode]' \
+    '(-)'{-s,--showall}'[use showall mode]' \
+    '(-)'{-i,--interact}'[use intractive menus]' \
+    '(-)'{-I,--nointeract}'[use plain lists]' \
+    '(-)'{-M,--machine}'[machine-readable output]' \
+    '(-)'{-q,--quiet}'[show less texts]' \
+    '(-)'{-v,--verbose}'[show more texts]' \
+    '(-)-D[activate all debug output]' \
+    '(-)-d[activate the debug category]: :->category' \
+    '(-)--debug=-[activate debug output]: :->category' \
+    '(-)-c[set a configuration item]' \
+    '(- *)'{-h,--help}'[show help]' \
+    '(- *)'{-V,--version}'[show version]' \
+    '(- *)'{-f,--files}'[show configuration files]' \
+    '(- *)--just-view[just display the given file]: :_files' \
+    '*: :->package' && return 0
+
+  local tlpdb="$(kpsewhich -var-value TEXMFROOT)/tlpkg/texlive.tlpdb"
+  case $state in
+    category)
+      _values 'category' \
+        'all' 'config' 'files' 'score' 'search' 'texdocs' 'tlpdb' 'version' 'view'
+    ;;
+    package)
+      _values 'package' $(awk '/^name[^.]*$/ {print $2}' $tlpdb)
+    ;;
+  esac
+}
+
+_texdoc "$@"
+
+# vim: ft=zsh:
