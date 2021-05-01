@@ -5,6 +5,20 @@ This project is work-in-progress. At this point, only completion functions for [
 - `tlmgr`
 - `texdoc`
 
+## Installation (Zsh)
+
+* Clone the repository:
+
+```
+git clone git://github.com/wtsnjp/texlive-completions.git
+```
+
+* Include the directory in your `$fpath`, for example by adding in `~/.zshrc`:
+
+```
+fpath=(path/to/texlive-completions/zsh $fpath)
+```
+
 ## License
 
 This package is distributed under [the MIT license](./LICENSE).
