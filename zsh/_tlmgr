@@ -193,7 +193,25 @@ function _tlmgr_install() {
 }
 
 # tlmgr key
-# TODO
+function _tlmgr_key() {
+  _arguments -C : \
+    '1:operation:->operation' \
+    '*::argument:->argument'
+
+  case "$state" in
+    operation)
+      _values argument list add remove
+    ;;
+    argument)
+      local op="${line[1]}"
+      if [[ "$op" == "add" ]]; then
+        _files
+      elif [[ "$op" == "remove" ]]; then
+        # TODO: show key IDs
+      fi
+    ;;
+  esac
+}
 
 # tlmgr list
 function _tlmgr_list() {
@@ -201,7 +219,34 @@ function _tlmgr_list() {
 }
 
 # tlmgr option
-# TODO
+function _tlmgr_option() {
+  function __tlmgr_option_argument() {
+    local -a argument
+    argument=(
+      help
+      show
+      showall
+      "${(@f)$(tlmgr option showall | awk '
+      match($0, /\([^)]*\):/) {
+        print substr($0, RSTART+1, RLENGTH-3)
+      }')}")
+    _describe -t argument 'tlmgr option argument' argument
+  }
+
+  _arguments \
+    '--json' \
+    - argument \
+    '*::argument:__tlmgr_option_argument'
+}
+
+# tlmgr paper
+function _tlmgr_paper() {
+  # Note: not supporting pre-argument, e.g., xdvi paper
+  _arguments \
+    '--json' \
+    - papersize \
+    '*::papersize:_values papersize a4 letter'
+}
 
 # the main completion function
 function _tlmgr() {
