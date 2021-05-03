@@ -149,7 +149,7 @@ function _tlmgr_generate() {
     '--dest=:file:_files' \
     '--localcfg=:file:_files' \
     '--rebuild-sys' \
-    '*: :->langfile' && return 0
+    '*: :->langfile'
 
   case $state in
     langfile)
@@ -245,7 +245,33 @@ function _tlmgr_paper() {
   _arguments \
     '--json' \
     - papersize \
-    '*::papersize:_values papersize a4 letter'
+    '*: :_values papersize a4 letter'
+}
+
+# tlmgr path
+function _tlmgr_path() {
+  _arguments \
+    '--w23mode=:w32mode:_values w32mode user admin' \
+    '*: :_values operation add remove'
+}
+
+# tlmgr pinning
+# TODO
+
+# tlmgr platform
+function _tlmgr_platform() {
+  _arguments -C : \
+    '1:operation:->operation' \
+    '*::argument:->argument'
+
+  case "$state" in
+    operation)
+      _values argument 'list' 'add' 'remove' 'set'
+    ;;
+    argument)
+      # TODO: show platform
+    ;;
+  esac
 }
 
 # the main completion function
