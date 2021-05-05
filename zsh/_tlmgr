@@ -266,12 +266,109 @@ function _tlmgr_platform() {
 
   case "$state" in
     operation)
-      _values argument 'list' 'add' 'remove' 'set'
+      _values operation 'list' 'add' 'remove' 'set'
     ;;
     argument)
       # TODO: show platform
     ;;
   esac
+}
+
+# tlmgr postaction
+function _tlmgr_postaction() {
+  local function __tlmgr_postaction_args() {
+    if (( CURRENT == 1 )); then
+      _values operation 'install' 'remove'
+    elif (( CURRENT == 2 )); then
+      _values postaction shortcut fileassoc script
+    elif (( CURRENT == 3 )); then
+      __tlmgr_packages
+    fi
+  }
+  _arguments \
+    '--w23mode=:w32mode:_values w32mode user admin' \
+    '--fileassocmode=:fmode:_values fmode 1 2' \
+    '--all' \
+    '*::arguments:__tlmgr_postaction_args'
+}
+
+# tlmgr print-platform
+# nothing to do
+
+# tlmgr print-platform-info
+# nothing to do
+
+# tlmgr remove
+function _tlmgr_remove() {
+  _arguments \
+    '--backup' \
+    '--backupdir=:directory:_files -/' \
+    '--no-depends' \
+    '--no-depends-at-all' \
+    '--force' \
+    '--dry-run' \
+    - packages \
+    '*::packages:__tlmgr_packages'
+}
+
+# tlmgr repository
+function _tlmgr_repository() {
+  _arguments \
+    '1: :_values operation list add remove set status'
+}
+
+# tlmgr restore
+function _tlmgr_restore() {
+  _arguments \
+    '--all' \
+    '--backupdir=:directory:_files -/' \
+    '--dry-run' \
+    '--force' \
+    '--json' \
+    - packages \
+    '*::packages:__tlmgr_packages'
+}
+
+# tlmgr search
+function _tlmgr_search() {
+  _arguments \
+    '--file' \
+    '--all' \
+    '--global' \
+    '--word'
+}
+
+# tlmgr shell
+# nothing to do
+
+# tlmgr show
+function _tlmgr_show() {
+  _tlmgr_info
+}
+
+# tlmgr uninstall
+function _tlmgr_uninstall() {
+  _tlmgr_remove
+}
+
+# tlmgr update
+function _tlmgr_update() {
+  _arguments \
+    '--all' \
+    '--self' \
+    '--dry-run' \
+    '--list' \
+    '--exclude' \
+    '--no-auto-remove' \
+    '--no-auto-install' \
+    '--reinstall-forcibly-removed' \
+    '--backup' \
+    '--backupdir=:directory:_files -/' \
+    '--no-depends' \
+    '--no-depends-at-all' \
+    '--force' \
+    - packages \
+    '*::packages:__tlmgr_packages'
 }
 
 # the main completion function
